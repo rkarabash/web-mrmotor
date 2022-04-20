@@ -1,5 +1,7 @@
 import { useState } from 'react';
 // material
+import { useNavigate } from 'react-router-dom';
+
 import { styled, alpha } from '@mui/material/styles';
 import { Input, Slide, Button, IconButton, InputAdornment, ClickAwayListener } from '@mui/material';
 // component
@@ -34,7 +36,8 @@ const SearchbarStyle = styled('div')(({ theme }) => ({
 
 export default function Searchbar() {
   const [isOpen, setOpen] = useState(false);
-
+  const [query, setQuery] = useState('');
+  const navigate = useNavigate();
   const handleOpen = () => {
     setOpen((prev) => !prev);
   };
@@ -42,7 +45,6 @@ export default function Searchbar() {
   const handleClose = () => {
     setOpen(false);
   };
-
   return (
     <ClickAwayListener onClickAway={handleClose}>
       <div>
@@ -58,6 +60,8 @@ export default function Searchbar() {
               autoFocus
               fullWidth
               disableUnderline
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
               placeholder="Search…"
               startAdornment={
                 <InputAdornment position="start">
@@ -69,7 +73,17 @@ export default function Searchbar() {
               }
               sx={{ mr: 1, fontWeight: 'fontWeightBold' }}
             />
-            <Button variant="contained" onClick={handleClose}>
+            <Button
+              variant="contained"
+              onClick={() => {
+                navigate('/app/search', {
+                  replace: true,
+                  state: { query: query.replace(' ', '%20') }
+                });
+                if (window.location.pathname === '/app/search') window.location.reload();
+              }}
+              // onClick={() => alert('click')}
+            >
               Search
             </Button>
           </SearchbarStyle>

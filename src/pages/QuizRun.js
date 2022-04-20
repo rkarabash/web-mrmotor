@@ -1,7 +1,9 @@
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import { Icon } from '@iconify/react';
 import { Box, Stack, Container, Typography, Avatar, Button } from '@mui/material';
+import { styled } from '@mui/material/styles';
+
 // components
 import Page from '../components/Page';
 
@@ -48,35 +50,53 @@ function QuizAnswer({ answer, index, tap, setTap, score, setScore }) {
 export default function QuizRun() {
   //----------------------------------------
   const navigate = useNavigate();
-  const tmp = JSON.parse(localStorage.getItem('quiz'));
-  const [quiz, setQuiz] = useState(tmp);
+  const [quiz, setQuiz] = useState({
+    id: 0,
+    title: '',
+    description: '',
+    timer: 10,
+    author: {
+      id: 0,
+      name: '',
+      email: '',
+      avatar: ''
+    },
+    quizItems: []
+  });
   const [count, setCount] = useState(0);
   const [score, setScore] = useState(0);
   const [tap, setTap] = useState(-1);
-  //---------------------------------------
-  if (!window.location.search.startsWith('?id=') || window.location.search.length === 4) {
-    return <Navigate to="/app/quizzes" />;
-  }
-  if (localStorage.getItem('token') === null) return <Navigate to="/login" />;
-  const id = parseInt(window.location.search.substring(4), 10);
-  const getQuiz = () => {
+  const [result, setResult] = useState(true);
+  const CoverImgStyle = styled('img')({
+    top: 0,
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+    position: 'absolute',
+    borderRadius: '15px',
+    border: '2px solid #FDCB6E'
+  });
+  const state = useLocation();
+  const { mquiz } = state.state;
+  const postResult = () => {
     const requestOptions = {
-      method: 'GET',
+      method: 'POST',
       headers: {
         Authorization: localStorage.getItem('token')
       }
     };
-    fetch(`https://mrmotor.herokuapp.com/quiz/${id}`, requestOptions)
+    fetch(
+      `https://mrmotor.herokuapp.com/quiz/result?achieved=${score}&id=${quiz.id}`,
+      requestOptions
+    )
       .then(async (response) => {
-        const data = await response.json();
+        const data = await response;
         // check for error response
         if (!response.ok) {
           // get error message from body or default to response statusText
           const error = (data && data.message) || response.statusText;
           return Promise.reject(error);
         }
-        localStorage.setItem('quiz', JSON.stringify(data));
-        setQuiz(data);
       })
       .catch((error) => {
         console.error('There was an error!', error);
@@ -84,9 +104,20 @@ export default function QuizRun() {
         window.location.reload(false);
       });
   };
-  if (id !== quiz.id) {
-    getQuiz();
+  if (quiz.id === 0) {
+    setQuiz(mquiz);
   }
+  if (quiz.quizItems.length !== 0 && count === quiz.quizItems.length && result) {
+    setResult(false);
+    postResult();
+  }
+  //---------------------------------------
+  if (!window.location.search.startsWith('?id=') || window.location.search.length === 4) {
+    return <Navigate to="/app/quizzes" />;
+  }
+  if (localStorage.getItem('token') === null) return <Navigate to="/login" />;
+  const id = parseInt(window.location.search.substring(4), 10);
+
   //-----------------------------------------------
   let quizItem;
   let answers;
@@ -129,14 +160,17 @@ export default function QuizRun() {
                 position: 'relative'
               }}
             >
-              <Box
-                component="img"
-                src="/static/logo.svg"
-                width="60%"
-                height="auto"
-                color="#FDCB6E"
-                sx={{ position: 'absolute', bottom: '35%', right: '20%' }}
-              />
+              {quizItem.image === '' && (
+                <Box
+                  component="img"
+                  src="/static/logo.svg"
+                  width="60%"
+                  height="auto"
+                  color="#FDCB6E"
+                  sx={{ position: 'absolute', bottom: '35%', right: '20%' }}
+                />
+              )}
+              {quizItem.image !== '' && <CoverImgStyle alt="Question Image" src={quizItem.image} />}
             </Box>
           )}
           {count === quiz.quizItems.length && (
@@ -210,7 +244,7 @@ export default function QuizRun() {
               textAlign="center"
               sx={{ position: 'absolute', right: '10px', color: '#000', top: '1.5px' }}
             >
-              {(score / count) * 100}%
+              {Math.round((score * 1000) / count) / 10}%
             </Typography>
           </Box>
         )}

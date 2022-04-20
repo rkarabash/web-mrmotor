@@ -46,7 +46,7 @@ export default function Quiz() {
   } else if (id % 3 === 0) {
     icon = 'fa-solid:trophy';
   } else if (id % 2 === 0) {
-    icon = 'mdi:steering';
+    icon = 'bxs:star';
   } else {
     icon = 'bxs:car';
   }
@@ -67,7 +67,7 @@ export default function Quiz() {
           const error = (data && data.message) || response.statusText;
           return Promise.reject(error);
         }
-        localStorage.setItem('quiz', JSON.stringify(data));
+        // localStorage.setItem('quiz', JSON.stringify(data));
         setQuiz(data);
       })
       .catch((error) => {
@@ -75,6 +75,32 @@ export default function Quiz() {
         alert('Wrong data inputed!');
         window.location.reload(false);
       });
+  };
+  const deleteQuiz = () => {
+    const requestOptions = {
+      method: 'DELETE',
+      headers: {
+        Authorization: localStorage.getItem('token')
+      }
+    };
+    fetch(`https://mrmotor.herokuapp.com/quiz/delete?id=${quiz.id}`, requestOptions)
+      .then(async (response) => {
+        const data = await response;
+
+        // check for error response
+        if (!response.ok) {
+          // get error message from body or default to response statusText
+          const error = (data && data.message) || response.statusText;
+          return Promise.reject(error);
+        }
+        navigate('/app/myquizzes', { replace: true });
+      })
+      .catch((error) => {
+        console.error('There was an error!', error);
+      });
+  };
+  const editQuiz = () => {
+    navigate('/app/quiz/new', { replace: true, state: { mquiz: quiz } });
   };
   if (flag) {
     setFlag(false);
@@ -113,7 +139,9 @@ export default function Quiz() {
             </Box>
           )}
 
-          <Typography variant="h4">Description:</Typography>
+          <Typography variant="h4">
+            {quiz.description === '' ? <Skeleton animation="wave" /> : 'Description:'}
+          </Typography>
           <Typography variant="body1" color="#DFE6E9" sx={{ marginBottom: '20px' }}>
             {quiz.description === '' ? (
               <Skeleton height="30vh" sx={{ marginTop: -7, marginBottom: -8 }} animation="wave" />
@@ -127,18 +155,30 @@ export default function Quiz() {
           disabled={quiz.id === 0}
           variant="outlined"
           sx={{ marginTop: '50px' }}
-          onClick={() => navigate(`/app/quizrun?id=${id}`, { replace: true })}
+          onClick={() =>
+            navigate(`/app/quizrun?id=${id}`, { replace: true, state: { mquiz: quiz } })
+          }
         >
           START QUIZ
         </Button>
 
         {user.id === quiz.author.id && (
-          <Button fullWidth variant="outlined" sx={{ marginTop: '15px' }}>
+          <Button
+            fullWidth
+            variant="outlined"
+            sx={{ marginTop: '15px' }}
+            onClick={() => editQuiz()}
+          >
             EDIT QUIZ
           </Button>
         )}
         {user.id === quiz.author.id && (
-          <Button fullWidth variant="outlined" sx={{ marginTop: '15px' }}>
+          <Button
+            fullWidth
+            variant="outlined"
+            sx={{ marginTop: '15px' }}
+            onClick={() => deleteQuiz()}
+          >
             DELETE QUIZ
           </Button>
         )}

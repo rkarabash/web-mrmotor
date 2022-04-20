@@ -20,6 +20,9 @@ import Post from './pages/Post';
 import Quiz from './pages/Quiz';
 import QuizRun from './pages/QuizRun';
 import QuizEdit from './pages/QuizEdit';
+import Favorites from './pages/Favorites';
+import Results from './pages/Results';
+import Search from './pages/Search';
 // ----------------------------------------------------------------------
 
 export default function Router() {
@@ -40,7 +43,10 @@ export default function Router() {
         { path: 'quiz', element: <Quiz /> },
         { path: 'quizrun', element: <QuizRun /> },
         { path: 'myquizzes', element: <Quizzes isMy="true" /> },
-        { path: 'quiz/new', element: <QuizEdit /> }
+        { path: 'quiz/new', element: <QuizEdit /> },
+        { path: 'favorites', element: <Favorites /> },
+        { path: 'results', element: <Results /> },
+        { path: 'search', element: <Search /> }
       ]
     },
     {

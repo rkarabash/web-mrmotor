@@ -1,10 +1,11 @@
 // material
 import { Grid, Container, Stack, Typography, Box } from '@mui/material';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 // components
 import Page from '../components/Page';
 import { BlogPostCard } from '../sections/@app/blog';
+//
 
 // ----------------------------------------------------------------------
 
@@ -12,26 +13,64 @@ export default function Competitions() {
   const [Data, setData] = useState({
     posts: []
   });
-  const requestOptions = {
-    method: 'GET'
+  const [scroll, setScroll] = useState(window.scrollY);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAdding, setIsAdding] = useState(false);
+  const blockRef = useRef(null);
+  const getData = (type) => {
+    let requestOptions = {
+      method: 'GET'
+    };
+    if (localStorage.getItem('token') !== null) {
+      requestOptions = {
+        method: 'GET',
+        headers: {
+          Authorization: localStorage.getItem('token')
+        }
+      };
+    }
+    fetch(
+      `https://mrmotor.herokuapp.com/posts/get_by_type_limit?type=${type}&offset=${Data.posts.length}&limit=6`,
+      requestOptions
+    )
+      .then(async (response) => {
+        const data = await response.json();
+        // check for error response
+        if (!response.ok) {
+          // get error message from body or default to response statusText
+          const error = (data && data.message) || response.statusText;
+          return Promise.reject(error);
+        }
+        setIsAdding(false);
+        setData({ posts: [...Data.posts, ...data.posts] });
+      })
+      .catch((error) => {
+        console.error('There was an error!', error);
+        alert('Wrong data inputed!');
+        window.location.reload(false);
+      });
   };
-  fetch('https://mrmotor.herokuapp.com/posts/get_by_type?type=COMPETITION', requestOptions)
-    .then(async (response) => {
-      const data = await response.json();
-      // check for error response
-      if (!response.ok) {
-        // get error message from body or default to response statusText
-        const error = (data && data.message) || response.statusText;
-        return Promise.reject(error);
-      }
-      localStorage.setItem('competitions', JSON.stringify(data));
-      setData(data);
-    })
-    .catch((error) => {
-      console.error('There was an error!', error);
-      alert('Wrong data inputed!');
-      window.location.reload(false);
-    });
+
+  useEffect(() => {
+    window.addEventListener('scroll', (e) => setScroll(window.pageYOffset));
+    return () => {
+      window.removeEventListener('scroll', (e) => setScroll(window.pageYOffset));
+    };
+  }, [scroll]);
+
+  if (isLoading) {
+    getData('COMPETITION');
+    setIsLoading(false);
+  }
+
+  if (blockRef.current) {
+    const { clientHeight } = blockRef.current;
+    if (!isAdding && scroll > clientHeight * 0.3) {
+      setIsAdding(true);
+      getData('COMPETITION');
+    }
+  }
+
   return (
     <Page title="Competitions | Mr.Motor">
       <Container sx={{ position: 'relative' }}>
@@ -40,6 +79,7 @@ export default function Competitions() {
             Competitions
           </Typography>
         </Stack>
+
         {Data.posts.length === 0 && (
           <Box
             sx={{ margin: '0 auto', position: 'absolute', top: '500%', left: 'calc(50% - 75px)' }}
@@ -48,7 +88,7 @@ export default function Competitions() {
           </Box>
         )}
         {Data.posts.length !== 0 && (
-          <Grid container spacing={3}>
+          <Grid container spacing={3} ref={blockRef}>
             {Data.posts.map((post, index) => (
               <BlogPostCard key={post.id} post={post} index={index} />
             ))}

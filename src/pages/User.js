@@ -21,7 +21,7 @@ export default function User() {
             <ProfileItem
               icon="fontisto:favorite"
               color="#0984E3"
-              url=""
+              url="/app/favorites"
               title="Favorite news and posts"
             />
           </Grid>
@@ -34,7 +34,12 @@ export default function User() {
             />
           </Grid>
           <Grid item xs={12} sm={6} md={6}>
-            <ProfileItem icon="foundation:results" color="#E17055" url="" title="My Quiz Results" />
+            <ProfileItem
+              icon="foundation:results"
+              color="#E17055"
+              url="/app/results"
+              title="My Quiz Results"
+            />
           </Grid>
         </Grid>
       </Container>

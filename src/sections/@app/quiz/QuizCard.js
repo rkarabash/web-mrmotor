@@ -29,8 +29,8 @@ QuizCard.propTypes = {
 
 export default function QuizCard({ post, index }) {
   const { id, title } = post;
-  const latestPostLarge = false;
-  const latestPost = true;
+  const latestPostLarge = true;
+  const latestPost = false;
   let color;
   let icon;
   if (index % 4 === 0) {
@@ -41,7 +41,7 @@ export default function QuizCard({ post, index }) {
     icon = 'fa-solid:trophy';
   } else if (index % 2 === 0) {
     color = '#6C5CE7';
-    icon = 'mdi:steering';
+    icon = 'bxs:star';
   } else {
     color = '#0984E3';
     icon = 'bxs:car';
@@ -64,7 +64,7 @@ export default function QuizCard({ post, index }) {
             }),
             ...(latestPostLarge && {
               pt: {
-                xs: 'calc(100% * 4 / 3)',
+                xs: 'calc(100% * 2 / 3)',
                 sm: 'calc(100% * 3 / 4.66)'
               }
             })
@@ -76,7 +76,30 @@ export default function QuizCard({ post, index }) {
             width="50%"
             height="auto"
             color="#FDCB6E"
-            sx={{ position: 'absolute', top: '25%', 'z-index': 10, left: '5%' }}
+            sx={{
+              position: 'absolute',
+              top: '25%',
+              'z-index': 10,
+              left: '5%',
+              ...(latestPostLarge && {
+                left: {
+                  xs: '65%',
+                  sm: '65%'
+                }
+              }),
+              ...(latestPostLarge && {
+                top: {
+                  xs: '5%',
+                  sm: '5%'
+                }
+              }),
+              ...(latestPostLarge && {
+                width: {
+                  xs: '30%',
+                  sm: '30%'
+                }
+              })
+            }}
           />
         </CardMediaStyle>
 

@@ -1,8 +1,10 @@
 import PropTypes from 'prop-types';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 // material
 import { alpha, styled } from '@mui/material/styles';
-import { Link, Card, Grid, CardContent } from '@mui/material';
+import { Box, Card, Grid, CardContent, Typography, IconButton } from '@mui/material';
+import { Icon } from '@iconify/react';
+import { useState } from 'react';
 
 // ----------------------------------------------------------------------
 
@@ -11,12 +13,18 @@ const CardMediaStyle = styled('div')({
   paddingTop: 'calc(100% * 3 / 4)'
 });
 
-const TitleStyle = styled(Link)({
+const TitleStyle = styled(Typography)({
   height: 44,
   overflow: 'hidden',
   WebkitLineClamp: 2,
   display: '-webkit-box',
-  WebkitBoxOrient: 'vertical'
+  WebkitBoxOrient: 'vertical',
+  cursor: 'pointer',
+  textDecoration: 'none',
+  '&:hover': {
+    textDecoration: 'underline',
+    transition: 'all 0.3s linear'
+  }
 });
 
 const CoverImgStyle = styled('img')({
@@ -35,12 +43,42 @@ BlogPostCard.propTypes = {
 };
 
 export default function BlogPostCard({ post, index }) {
-  const { thumbnail, title, source, id } = post;
+  const navigate = useNavigate();
+  const { thumbnail, title, like, id } = post;
+  const [likeFlag, setLikeFlag] = useState(true);
+  const [thisLike, setLike] = useState(like);
   const latestPostLarge = true;
   const latestPost = index === 1 || index === 2;
-
+  const likePost = () => {
+    if (likeFlag) {
+      setLikeFlag(false);
+      const requestOptions = {
+        method: 'POST',
+        headers: {
+          Authorization: localStorage.getItem('token')
+        }
+      };
+      fetch(`https://mrmotor.herokuapp.com/posts/like?id=${id}`, requestOptions)
+        .then(async (response) => {
+          const data = await response;
+          // check for error response
+          if (!response.ok) {
+            // get error message from body or default to response statusText
+            const error = (data && data.message) || response.statusText;
+            return Promise.reject(error);
+          }
+          setLikeFlag(true);
+          setLike(!thisLike);
+        })
+        .catch((error) => {
+          console.error('There was an error!', error);
+          alert('Wrong data inputed!');
+          window.location.reload(false);
+        });
+    }
+  };
   return (
-    <Grid item xs={12} sm={latestPostLarge ? 12 : 6} md={latestPostLarge ? 6 : 3}>
+    <Grid item xs={12} sm={6} md={6}>
       <Card sx={{ position: 'relative' }}>
         <CardMediaStyle
           sx={{
@@ -57,12 +95,26 @@ export default function BlogPostCard({ post, index }) {
             }),
             ...(latestPostLarge && {
               pt: {
-                xs: 'calc(100% * 4 / 3)',
+                xs: 'calc(100% * 2 / 3)',
                 sm: 'calc(100% * 3 / 4.66)'
               }
             })
           }}
         >
+          <Box
+            style={{
+              backgroundColor: '#636E72',
+              padding: '5px 5px 0px',
+              borderRadius: '10px',
+              position: 'absolute',
+              top: '10px',
+              right: '10px',
+              zIndex: '100'
+            }}
+            onClick={() => likePost()}
+          >
+            <Icon icon="bxs:star" color={thisLike ? '#FDCB6E' : '#DFE6E9'} width="24px" />
+          </Box>
           <CoverImgStyle alt={title} src={thumbnail} />
         </CardMediaStyle>
 
@@ -77,11 +129,9 @@ export default function BlogPostCard({ post, index }) {
           }}
         >
           <TitleStyle
-            to={`/app/post?id=${id}`}
             color="inherit"
             variant="subtitle2"
-            underline="hover"
-            component={RouterLink}
+            onClick={() => navigate(`/app/post?id=${id}`, { replace: true, state: { post } })}
             sx={{
               ...(latestPostLarge && { typography: 'h5', height: 60 }),
               ...((latestPostLarge || latestPost) && {

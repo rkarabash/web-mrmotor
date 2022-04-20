@@ -19,17 +19,14 @@ const ContentStyle = styled('div')(({ theme }) => ({
   maxWidth: 480,
   margin: '0 auto',
   display: 'flex',
-  minHeight: '45vh',
+  minHeight: '60vh',
   flexDirection: 'column',
-  justifyContent: 'center',
   padding: theme.spacing(0, 0)
 }));
 
 // ----------------------------------------------------------------------
 
 export default function QuizEdit() {
-  const [firstStep, setFirstStep] = useState(true);
-  const [quiz, setQuiz] = useState();
   if (localStorage.getItem('token') === null) {
     return <Navigate to="/app/home" />;
   }
